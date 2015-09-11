@@ -9,18 +9,18 @@
 *******************************************************************************/
 
 
-#include "obss_utils.h"
-#include "obss_data-struct.h"
+#include "comm_utils.h"
+#include "comm_data.h"
 
 
 #define OBSS_BUFFER_INIT_SIZE	(1024)
 
-OBSS_Buffer::OBSS_Buffer()
+COMM_Buffer::COMM_Buffer()
 {
     __buffStart = __buffEnd = dataStart = dataEnd = NULL;
     
 }
-OBSS_Buffer::~OBSS_Buffer()
+COMM_Buffer::~COMM_Buffer()
 {
 	try
 	{
@@ -36,7 +36,7 @@ OBSS_Buffer::~OBSS_Buffer()
 	}
 }
 
-int OBSS_Buffer::__checkData(const int needSize) 
+int COMM_Buffer::__checkData(const int needSize) 
 {
 	int			buf_size = OBSS_BUFFER_INIT_SIZE;
 	int			data_len = 0;
@@ -87,7 +87,7 @@ int OBSS_Buffer::__checkData(const int needSize)
 }
 
 
-size_t OBSS_Buffer::appendData(const char *addData, const size_t addLen)
+size_t COMM_Buffer::appendData(const char *addData, const size_t addLen)
 {
 	if (RET_OK != __checkData((int)addLen)) {
 		return 0;
@@ -100,7 +100,7 @@ size_t OBSS_Buffer::appendData(const char *addData, const size_t addLen)
 	return addLen;
 }
 
-size_t OBSS_Buffer::getDataLen()
+size_t COMM_Buffer::getDataLen()
 {
 	if (dataStart && dataEnd)
 		return (dataEnd - dataStart);
@@ -127,14 +127,14 @@ queue_node::~queue_node()
 }
 
 
-OBSS_Queue::OBSS_Queue()
+COMM_Queue::COMM_Queue()
 {
 	__head = NULL;
 	__tail = NULL;
 	__len = 0;
 }
 
-OBSS_Queue::~OBSS_Queue()
+COMM_Queue::~COMM_Queue()
 {
 	try
 	{
@@ -145,7 +145,7 @@ OBSS_Queue::~OBSS_Queue()
 	}
 }
 
-void OBSS_Queue::destroy()
+void COMM_Queue::destroy()
 {
 	queue_node* next;
 	queue_node* current = __head;
@@ -164,22 +164,22 @@ void OBSS_Queue::destroy()
 	return;
 }
 
-uint32 OBSS_Queue::getLen()
+uint32 COMM_Queue::getLen()
 {
 	return __len;
 }
 
-queue_node* OBSS_Queue::getStart()
+queue_node* COMM_Queue::getStart()
 {
 	return __head;
 }
 
-queue_node* OBSS_Queue::getEnd()
+queue_node* COMM_Queue::getEnd()
 {
 	return __tail;
 }
 
-int OBSS_Queue::pushBack(const char* data)
+int COMM_Queue::pushBack(const char* data)
 {
 	CHECK_RET(data != NULL, RET_ERROR);
 	
@@ -212,7 +212,7 @@ int OBSS_Queue::pushBack(const char* data)
 	return RET_OK;
 }
 
-int OBSS_Queue::popFront(char* data, const size_t len)
+int COMM_Queue::popFront(char* data, const size_t len)
 {
 	CHECK_RET(data != NULL, RET_ERROR);
 	CHECK_RET(__head != NULL, RET_ERROR);
@@ -232,7 +232,7 @@ int OBSS_Queue::popFront(char* data, const size_t len)
 	return RET_OK;
 }
 
-const char* OBSS_Queue::getByIndex(uint32 id)
+const char* COMM_Queue::getByIndex(uint32 id)
 {
 	CHECK_RET(__head != NULL, NULL);
 	CHECK_RET(id <= __len, NULL);

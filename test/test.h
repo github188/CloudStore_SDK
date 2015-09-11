@@ -10,7 +10,7 @@
 
 #include "obss_client.h"
 #include "obss_operation.h"
-#include "obss_c_style.h"
+#include "obss_c-wrapper.h"
 
 
 #if 1

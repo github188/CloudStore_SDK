@@ -8,8 +8,8 @@
 *
 *******************************************************************************/
 
-#ifndef __OBSS_BASE64_H__
-#define __OBSS_BASE64_H__
+#ifndef __COMM_BASE64_H__
+#define __COMM_BASE64_H__
 
 #ifdef __cplusplus
 extern "C"
@@ -24,5 +24,5 @@ int base64Encode(const unsigned char *in, unsigned int inLen, char *out);
 }
 #endif
 
-#endif /* __OBSS_BASE64_H__ */
+#endif /* __COMM_BASE64_H__ */
 

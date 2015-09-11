@@ -8,13 +8,13 @@
 *
 *******************************************************************************/
 
-
 #include <time.h>
 
-#include "obss_time.h"
-#include "obss_xml.h"
+#include "comm_time.h"
+#include "comm_xml.h"
+#include "comm_auth.h"
+
 #include "obss_error.h"
-#include "obss_auth.h"
 #include "obss_client.h"
 #include "obss_operation.h"
 
@@ -277,7 +277,7 @@ int OBSS_Operation::__parseListObjRslt(OBSS_ListObjRslt* listObjRslt, const char
 }
 
 
-int OBSS_Operation::__parseDeleteMultiObjsRslt(OBSS_Queue* objectQueue, const char* xmlBuff, const int xmlLen)
+int OBSS_Operation::__parseDeleteMultiObjsRslt(COMM_Queue* objectQueue, const char* xmlBuff, const int xmlLen)
 {
 	return RET_OK;
 }
@@ -687,226 +687,6 @@ int OBSS_Operation::putObjFromStream_Finish()
 	return RET_OK;
 }
 
-/*
-POST /oss_test_append_object_from_file?append&position=0 HTTP/1.1
-User-Agent: aliyun-sdk-c/libaos_0.0.3(Compatible oss_test)
-Host: albert-test.oss-cn-beijing.aliyuncs.com
-Content-Length: 363923
-Content-Type: application/x-www-form-urlencoded
-Date: Tue, 14 Jul 2015 02:55:30 GMT
-Authorization: OSS YTouKEOrlY7blSHn:inKc0exScouWtUUiMjgwQj5HQRs=
-*/
-int OBSS_Operation::appendObjFromFile(const char* bucket, const char* object, const char* fileName, 
-									size_t& position, size_t* billingSize)
-{
-	CHECK_RET(bucket != NULL, RET_ERROR);
-	CHECK_RET(object != NULL, RET_ERROR);
-	CHECK_RET(fileName != NULL, RET_ERROR);
-	CHECK_RET(__Client != NULL, RET_ERROR);
-
-	Http_Trans httpTrans(&RunHandle);
-
-	/* Open File */
-	FILE *fp;
-	fp = fopen(fileName, "rb");
-	CHECK_RET(fp != NULL, RET_ERROR);
-	
-	size_t fileSize = fileGetFileSize(fileName);
-	if (fileSize == 0)
-	{
-		fclose(fp);
-		TRACE("file size of %s is %zu", fileName, fileSize);
-		return RET_ERROR;
-	}
-	if (billingSize) 
-		*billingSize = fileSize;
-
-	char resource[1024] = {0};
-	char date[64] = {0};
-	char header_authline[1024] = {0};
-	char header_line[1024] = {0};
-	size_t line_len = 0;
-
-	/* From HTTP Header */
-	(void)snprintf(resource, sizeof(resource), "/%s/%s?append&position=%zu", bucket, object, position);
-	
-	line_len = snprintf(header_line, sizeof(header_line), "%s %s " HTTP_VERSION HTTP_CRLF, HTTP_VERB_POST, resource);
-	(void)httpTrans.SendHttp.appendData(header_line, line_len);
-
-	line_len = snprintf(header_line, sizeof(header_line), "Host: %s" HTTP_CRLF, __Client->RemoteHost);
-	(void)httpTrans.SendHttp.appendData(header_line, line_len);
-
-	line_len = snprintf(header_line, sizeof(header_line), "Content-Length: %zu" HTTP_CRLF, fileSize);
-	(void)httpTrans.SendHttp.appendData(header_line, line_len);
-
-	line_len = snprintf(header_line, sizeof(header_line), "Content-Type: application/octet-stream" HTTP_CRLF);
-	(void)httpTrans.SendHttp.appendData(header_line, line_len);
-
-	time_GetGmt(date, sizeof(date));
-	line_len = snprintf(header_line, sizeof(header_line), "Date: %s" HTTP_CRLF, date);
-	(void)httpTrans.SendHttp.appendData(header_line, line_len);
-	
-	(void)FormAuthLine(header_authline, __Client->AccessId, __Client->AccessKey, HTTP_VERB_POST, "", 
-					"application/octet-stream", date, "", resource);
-	line_len = snprintf(header_line, sizeof(header_line), "Authorization: %s %s" HTTP_CRLF, __getAuthType(), header_authline);
-	(void)httpTrans.SendHttp.appendData(header_line, line_len);
-
-	line_len = snprintf(header_line, sizeof(header_line), "User-Agent: %s" HTTP_CRLF, __Client->UserAgent);
-	(void)httpTrans.SendHttp.appendData(header_line, line_len);
-
-	(void)httpTrans.SendHttp.appendData(HTTP_CRLF, strlen(HTTP_CRLF));
-
-	DEBUGMSG("HTTP REQ HEADER:\n[%s]\n", httpTrans.SendHttp.dataStart);
-
-	/* Send Data */
-	int ret = 0;
-	ret = httpTrans.sendHttp(__Client->RemoteHost, __Client->HttpPort);
-	if (ret != RET_OK)
-	{
-		TRACE("sent http header failed: %d", ret);
-		fclose(fp);
-		return RET_ERROR;
-	}
-	ret = httpTrans.sendContent(fp);
-	if (ret != RET_OK)
-	{
-		TRACE("sent buff failed: %d", ret);
-		fclose(fp);
-		return RET_ERROR;
-	}
-
-	fclose(fp);
-
-	/* Receive Response */
-	ret = httpTrans.recvResp();
-	if (ret != RET_OK)
-	{
-		TRACE("receive http responce failed: %d", ret);
-		return RET_ERROR;
-	}
-	ret = httpTrans.RecvHttp.parseData();
-	if (ret != RET_OK)
-	{
-		TRACE("parse http responce failed: %d", ret);
-		return RET_ERROR;
-	}
-	ret = httpTrans.RecvHttp.getResult();
-	if (ret == RET_ERROR)
-	{
-		TRACE("parse http response result failed: %d", ret);
-		return RET_ERROR;
-	}
-	
-	DEBUGMSG("Body: \n[%s]\n", httpTrans.RecvHttp.httpBody);
-
-	const char* position_str = NULL;
-	position_str = httpTrans.RecvHttp.getHeader("x-oss-next-append-position");
-	if (position_str)
-		position = atoi(position_str);
-
-	if (ret != 200)
-		return __parseErrorCode(ret, httpTrans.RecvHttp.httpBody, httpTrans.RecvHttp.dataEnd - httpTrans.RecvHttp.httpBody);
-
-	return RET_OK;
-}
-
-
-int OBSS_Operation::appendObjFromBuffer(const char* bucket, const char* object, size_t& position,
-							const char* buff, const size_t buffLen)
-{
-	CHECK_RET(bucket != NULL, RET_ERROR);
-	CHECK_RET(object != NULL, RET_ERROR);
-	CHECK_RET(buff != NULL, RET_ERROR);
-	CHECK_RET(__Client != NULL,RET_ERROR);
-	
-	Http_Trans httpTrans(&RunHandle);
-
-	char resource[1024] = {0};
-	char date[64] = {0};
-	char header_authline[1024] = {0};
-	char header_line[1024] = {0};
-	size_t line_len = 0;
-
-	/* From HTTP Header */
-	(void)snprintf(resource, sizeof(resource), "/%s/%s?append&position=%zu", bucket, object, position);
-	
-	line_len = snprintf(header_line, sizeof(header_line), "%s %s " HTTP_VERSION HTTP_CRLF, HTTP_VERB_POST, resource);
-	(void)httpTrans.SendHttp.appendData(header_line, line_len);
-
-	line_len = snprintf(header_line, sizeof(header_line), "Host: %s" HTTP_CRLF, __Client->RemoteHost);
-	(void)httpTrans.SendHttp.appendData(header_line, line_len);
-
-	line_len = snprintf(header_line, sizeof(header_line), "Content-Length: %zu" HTTP_CRLF, buffLen);
-	(void)httpTrans.SendHttp.appendData(header_line, line_len);
-
-	line_len = snprintf(header_line, sizeof(header_line), "Content-Type: application/octet-stream" HTTP_CRLF);
-	(void)httpTrans.SendHttp.appendData(header_line, line_len);
-
-	time_GetGmt(date, sizeof(date));
-	line_len = snprintf(header_line, sizeof(header_line), "Date: %s" HTTP_CRLF, date);
-	(void)httpTrans.SendHttp.appendData(header_line, line_len);
-	
-	(void)FormAuthLine(header_authline, __Client->AccessId, __Client->AccessKey, HTTP_VERB_POST, "", 
-						"application/octet-stream", date, "", resource);
-	line_len = snprintf(header_line, sizeof(header_line), "Authorization: %s %s" HTTP_CRLF, __getAuthType(), header_authline);
-	(void)httpTrans.SendHttp.appendData(header_line, line_len);
-
-	line_len = snprintf(header_line, sizeof(header_line), "User-Agent: %s" HTTP_CRLF, __Client->UserAgent);
-	(void)httpTrans.SendHttp.appendData(header_line, line_len);
-
-	(void)httpTrans.SendHttp.appendData(HTTP_CRLF, strlen(HTTP_CRLF));
-
-	DEBUGMSG("HTTP REQ HEADER:\n[%s]\n", httpTrans.SendHttp.dataStart);
-
-	/* Send Data */
-	int ret = 0;
-	ret = httpTrans.sendHttp(__Client->RemoteHost, __Client->HttpPort);
-	if (ret != RET_OK)
-	{
-		TRACE("sent http header failed: %d", ret);
-		return RET_ERROR;
-	}
-	ret = httpTrans.sendContent(buff, buffLen);
-	if (ret != RET_OK)
-	{
-		TRACE("sent buff failed: %d", ret);
-		return RET_ERROR;
-	}
-	
-	/* Receive Response */
-	ret = httpTrans.recvResp();
-	if (ret != RET_OK)
-	{
-		TRACE("receive http responce failed: %d", ret);
-		return RET_ERROR;
-	}
-	ret = httpTrans.RecvHttp.parseData();
-	if (ret != RET_OK)
-	{
-		TRACE("parse http responce failed: %d", ret);
-		return RET_ERROR;
-	}
-	ret = httpTrans.RecvHttp.getResult();
-	if (ret == RET_ERROR)
-	{
-		TRACE("parse http response result failed: %d", ret);
-		return RET_ERROR;
-	}
-	
-	DEBUGMSG("Body: \n[%s]\n",httpTrans.RecvHttp.httpBody);
-
-	const char* position_str = NULL;
-	position_str = httpTrans.RecvHttp.getHeader("x-oss-next-append-position");
-	if (position_str)
-		position = atoi(position_str);
-	
-	if (ret != 200)
-		return __parseErrorCode(ret, httpTrans.RecvHttp.httpBody, httpTrans.RecvHttp.dataEnd - httpTrans.RecvHttp.httpBody);
-	
-	return RET_OK;
-}
-
-
 int OBSS_Operation::getObj2File(const char* bucket, const char* object, const char* fileName, 
 					const size_t rangeLen, const size_t rangeStart)
 {
@@ -1194,7 +974,7 @@ Authorization: SignatureValue
 ...
 </Delete>
 */
-int OBSS_Operation::deleteMultiObjects(const char* bucket, OBSS_Queue* objectQueue, const bool isQuiet)
+int OBSS_Operation::deleteMultiObjects(const char* bucket, COMM_Queue* objectQueue, const bool isQuiet)
 {
 	CHECK_RET(bucket != NULL, RET_ERROR);
 	CHECK_RET(objectQueue != NULL, RET_ERROR);
@@ -1205,7 +985,7 @@ int OBSS_Operation::deleteMultiObjects(const char* bucket, OBSS_Queue* objectQue
 	int ret = 0;
 
 	/* From HTTP xml Body */
-	OBSS_Buffer xml_body;
+	COMM_Buffer xml_body;
 
 	(void)xml_body.appendData("<Delete>", strlen("<Delete>"));
 	
@@ -1423,7 +1203,7 @@ int OBSS_Operation::listObject(OBSS_ListObjRslt* listObjRslt, const char* bucket
 	}
 
 	/* Receive & Parse Body */
-	OBSS_Buffer	obssBuff;
+	COMM_Buffer	obssBuff;
 	ret = httpTrans.saveBody(&obssBuff);
 	CHECK_RET(ret == RET_OK, RET_ERROR);
 	
@@ -1509,4 +1289,226 @@ int OBSS_Operation::genSignUrl(char* signUrl,
 	
 	return RET_OK;
 }
+
+#if 0 
+/*
+POST /oss_test_append_object_from_file?append&position=0 HTTP/1.1
+User-Agent: aliyun-sdk-c/libaos_0.0.3(Compatible oss_test)
+Host: albert-test.oss-cn-beijing.aliyuncs.com
+Content-Length: 363923
+Content-Type: application/x-www-form-urlencoded
+Date: Tue, 14 Jul 2015 02:55:30 GMT
+Authorization: OSS YTouKEOrlY7blSHn:inKc0exScouWtUUiMjgwQj5HQRs=
+*/
+int OBSS_Operation::appendObjFromFile(const char* bucket, const char* object, const char* fileName, 
+									size_t& position, size_t* billingSize)
+{
+	CHECK_RET(bucket != NULL, RET_ERROR);
+	CHECK_RET(object != NULL, RET_ERROR);
+	CHECK_RET(fileName != NULL, RET_ERROR);
+	CHECK_RET(__Client != NULL, RET_ERROR);
+
+	Http_Trans httpTrans(&RunHandle);
+
+	/* Open File */
+	FILE *fp;
+	fp = fopen(fileName, "rb");
+	CHECK_RET(fp != NULL, RET_ERROR);
+	
+	size_t fileSize = fileGetFileSize(fileName);
+	if (fileSize == 0)
+	{
+		fclose(fp);
+		TRACE("file size of %s is %zu", fileName, fileSize);
+		return RET_ERROR;
+	}
+	if (billingSize) 
+		*billingSize = fileSize;
+
+	char resource[1024] = {0};
+	char date[64] = {0};
+	char header_authline[1024] = {0};
+	char header_line[1024] = {0};
+	size_t line_len = 0;
+
+	/* From HTTP Header */
+	(void)snprintf(resource, sizeof(resource), "/%s/%s?append&position=%zu", bucket, object, position);
+	
+	line_len = snprintf(header_line, sizeof(header_line), "%s %s " HTTP_VERSION HTTP_CRLF, HTTP_VERB_POST, resource);
+	(void)httpTrans.SendHttp.appendData(header_line, line_len);
+
+	line_len = snprintf(header_line, sizeof(header_line), "Host: %s" HTTP_CRLF, __Client->RemoteHost);
+	(void)httpTrans.SendHttp.appendData(header_line, line_len);
+
+	line_len = snprintf(header_line, sizeof(header_line), "Content-Length: %zu" HTTP_CRLF, fileSize);
+	(void)httpTrans.SendHttp.appendData(header_line, line_len);
+
+	line_len = snprintf(header_line, sizeof(header_line), "Content-Type: application/octet-stream" HTTP_CRLF);
+	(void)httpTrans.SendHttp.appendData(header_line, line_len);
+
+	time_GetGmt(date, sizeof(date));
+	line_len = snprintf(header_line, sizeof(header_line), "Date: %s" HTTP_CRLF, date);
+	(void)httpTrans.SendHttp.appendData(header_line, line_len);
+	
+	(void)FormAuthLine(header_authline, __Client->AccessId, __Client->AccessKey, HTTP_VERB_POST, "", 
+					"application/octet-stream", date, "", resource);
+	line_len = snprintf(header_line, sizeof(header_line), "Authorization: %s %s" HTTP_CRLF, __getAuthType(), header_authline);
+	(void)httpTrans.SendHttp.appendData(header_line, line_len);
+
+	line_len = snprintf(header_line, sizeof(header_line), "User-Agent: %s" HTTP_CRLF, __Client->UserAgent);
+	(void)httpTrans.SendHttp.appendData(header_line, line_len);
+
+	(void)httpTrans.SendHttp.appendData(HTTP_CRLF, strlen(HTTP_CRLF));
+
+	DEBUGMSG("HTTP REQ HEADER:\n[%s]\n", httpTrans.SendHttp.dataStart);
+
+	/* Send Data */
+	int ret = 0;
+	ret = httpTrans.sendHttp(__Client->RemoteHost, __Client->HttpPort);
+	if (ret != RET_OK)
+	{
+		TRACE("sent http header failed: %d", ret);
+		fclose(fp);
+		return RET_ERROR;
+	}
+	ret = httpTrans.sendContent(fp);
+	if (ret != RET_OK)
+	{
+		TRACE("sent buff failed: %d", ret);
+		fclose(fp);
+		return RET_ERROR;
+	}
+
+	fclose(fp);
+
+	/* Receive Response */
+	ret = httpTrans.recvResp();
+	if (ret != RET_OK)
+	{
+		TRACE("receive http responce failed: %d", ret);
+		return RET_ERROR;
+	}
+	ret = httpTrans.RecvHttp.parseData();
+	if (ret != RET_OK)
+	{
+		TRACE("parse http responce failed: %d", ret);
+		return RET_ERROR;
+	}
+	ret = httpTrans.RecvHttp.getResult();
+	if (ret == RET_ERROR)
+	{
+		TRACE("parse http response result failed: %d", ret);
+		return RET_ERROR;
+	}
+	
+	DEBUGMSG("Body: \n[%s]\n", httpTrans.RecvHttp.httpBody);
+
+	const char* position_str = NULL;
+	position_str = httpTrans.RecvHttp.getHeader("x-oss-next-append-position");
+	if (position_str)
+		position = atoi(position_str);
+
+	if (ret != 200)
+		return __parseErrorCode(ret, httpTrans.RecvHttp.httpBody, httpTrans.RecvHttp.dataEnd - httpTrans.RecvHttp.httpBody);
+
+	return RET_OK;
+}
+
+
+int OBSS_Operation::appendObjFromBuffer(const char* bucket, const char* object, size_t& position,
+							const char* buff, const size_t buffLen)
+{
+	CHECK_RET(bucket != NULL, RET_ERROR);
+	CHECK_RET(object != NULL, RET_ERROR);
+	CHECK_RET(buff != NULL, RET_ERROR);
+	CHECK_RET(__Client != NULL,RET_ERROR);
+	
+	Http_Trans httpTrans(&RunHandle);
+
+	char resource[1024] = {0};
+	char date[64] = {0};
+	char header_authline[1024] = {0};
+	char header_line[1024] = {0};
+	size_t line_len = 0;
+
+	/* From HTTP Header */
+	(void)snprintf(resource, sizeof(resource), "/%s/%s?append&position=%zu", bucket, object, position);
+	
+	line_len = snprintf(header_line, sizeof(header_line), "%s %s " HTTP_VERSION HTTP_CRLF, HTTP_VERB_POST, resource);
+	(void)httpTrans.SendHttp.appendData(header_line, line_len);
+
+	line_len = snprintf(header_line, sizeof(header_line), "Host: %s" HTTP_CRLF, __Client->RemoteHost);
+	(void)httpTrans.SendHttp.appendData(header_line, line_len);
+
+	line_len = snprintf(header_line, sizeof(header_line), "Content-Length: %zu" HTTP_CRLF, buffLen);
+	(void)httpTrans.SendHttp.appendData(header_line, line_len);
+
+	line_len = snprintf(header_line, sizeof(header_line), "Content-Type: application/octet-stream" HTTP_CRLF);
+	(void)httpTrans.SendHttp.appendData(header_line, line_len);
+
+	time_GetGmt(date, sizeof(date));
+	line_len = snprintf(header_line, sizeof(header_line), "Date: %s" HTTP_CRLF, date);
+	(void)httpTrans.SendHttp.appendData(header_line, line_len);
+	
+	(void)FormAuthLine(header_authline, __Client->AccessId, __Client->AccessKey, HTTP_VERB_POST, "", 
+						"application/octet-stream", date, "", resource);
+	line_len = snprintf(header_line, sizeof(header_line), "Authorization: %s %s" HTTP_CRLF, __getAuthType(), header_authline);
+	(void)httpTrans.SendHttp.appendData(header_line, line_len);
+
+	line_len = snprintf(header_line, sizeof(header_line), "User-Agent: %s" HTTP_CRLF, __Client->UserAgent);
+	(void)httpTrans.SendHttp.appendData(header_line, line_len);
+
+	(void)httpTrans.SendHttp.appendData(HTTP_CRLF, strlen(HTTP_CRLF));
+
+	DEBUGMSG("HTTP REQ HEADER:\n[%s]\n", httpTrans.SendHttp.dataStart);
+
+	/* Send Data */
+	int ret = 0;
+	ret = httpTrans.sendHttp(__Client->RemoteHost, __Client->HttpPort);
+	if (ret != RET_OK)
+	{
+		TRACE("sent http header failed: %d", ret);
+		return RET_ERROR;
+	}
+	ret = httpTrans.sendContent(buff, buffLen);
+	if (ret != RET_OK)
+	{
+		TRACE("sent buff failed: %d", ret);
+		return RET_ERROR;
+	}
+	
+	/* Receive Response */
+	ret = httpTrans.recvResp();
+	if (ret != RET_OK)
+	{
+		TRACE("receive http responce failed: %d", ret);
+		return RET_ERROR;
+	}
+	ret = httpTrans.RecvHttp.parseData();
+	if (ret != RET_OK)
+	{
+		TRACE("parse http responce failed: %d", ret);
+		return RET_ERROR;
+	}
+	ret = httpTrans.RecvHttp.getResult();
+	if (ret == RET_ERROR)
+	{
+		TRACE("parse http response result failed: %d", ret);
+		return RET_ERROR;
+	}
+	
+	DEBUGMSG("Body: \n[%s]\n",httpTrans.RecvHttp.httpBody);
+
+	const char* position_str = NULL;
+	position_str = httpTrans.RecvHttp.getHeader("x-oss-next-append-position");
+	if (position_str)
+		position = atoi(position_str);
+	
+	if (ret != 200)
+		return __parseErrorCode(ret, httpTrans.RecvHttp.httpBody, httpTrans.RecvHttp.dataEnd - httpTrans.RecvHttp.httpBody);
+	
+	return RET_OK;
+}
+#endif
+
 

@@ -12,7 +12,7 @@
 #define __OBSS_C_STYLE_H__
 
 
-#include "obss_utils.h"
+#include "comm_utils.h"
 
 
 typedef void *OBSS_ClntHandle;

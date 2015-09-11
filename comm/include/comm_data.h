@@ -8,15 +8,15 @@
 *
 *******************************************************************************/
 
-#ifndef __OBSS_LIST_H__
-#define __OBSS_LIST_H__
+#ifndef __COMM_DATA_H__
+#define __COMM_DATA_H__
 
 
-class OBSS_Buffer
+class COMM_Buffer
 {
 public:
-	OBSS_Buffer();
-	virtual ~OBSS_Buffer();
+	COMM_Buffer();
+	virtual ~COMM_Buffer();
 public:
 	size_t appendData(const char *addData, const size_t addLen);
 	size_t getDataLen();
@@ -42,11 +42,11 @@ public:
 };
 
 
-class OBSS_Queue
+class COMM_Queue
 {
 public:
-	OBSS_Queue();
-	virtual ~OBSS_Queue();
+	COMM_Queue();
+	virtual ~COMM_Queue();
 public:
 	int pushBack(const char* data);
 	int popFront(char* data, const size_t len);
@@ -61,5 +61,5 @@ private:
 	uint32		__len;
 };
 
-#endif /* __OBSS_LIST_H__ */
+#endif /* __COMM_DATA_H__ */
 

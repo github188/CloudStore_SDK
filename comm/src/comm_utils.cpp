@@ -10,7 +10,7 @@
 
 
 #include <sys/stat.h>
-#include "obss_utils.h"
+#include "comm_utils.h"
 
 
 char* strDup(const char* str)

@@ -9,12 +9,11 @@
 *******************************************************************************/
 
 
-#include "obss_base64.h"
-#include "obss_hmac-sha1.h"
-#include "obss_md5.h"
-
-#include "obss_utils.h"
-#include "obss_auth.h"
+#include "comm_base64.h"
+#include "comm_hmac-sha1.h"
+#include "comm_md5.h"
+#include "comm_utils.h"
+#include "comm_auth.h"
 
 
 int FormSignature(char *signature, const char* secretKey, 

@@ -8,12 +8,12 @@
 *
 *******************************************************************************/
 
-#ifndef __OBSS_HTTP_H__
-#define __OBSS_HTTP_H__
+#ifndef __COMM_HTTP_H__
+#define __COMM_HTTP_H__
 
 
-#include "obss_tcptrans.h"
-#include "obss_data-struct.h"
+#include "comm_tcptrans.h"
+#include "comm_data.h"
 
 
 #define HTTP_VERSION		"HTTP/1.1"
@@ -28,7 +28,7 @@
 #define HTTP_CRLF			"\r\n"
 
 
-class Http_PDU: public OBSS_Buffer
+class Http_PDU: public COMM_Buffer
 {
 public:
 	Http_PDU();
@@ -56,9 +56,9 @@ public:
 	int recvHeader();
 	int saveContent(FILE* fp);
 	int saveContent(char* dataBuff, const size_t rangeLen);
-	int saveBody(OBSS_Buffer* obssBuff);
+	int saveBody(COMM_Buffer* obssBuff);
 private:
-	int __parseChunk(OBSS_Buffer* obssBuff, const OBSS_Buffer* chunkBuff);
+	int __parseChunk(COMM_Buffer* obssBuff, const COMM_Buffer* chunkBuff);
 public:
     Http_PDU    SendHttp;
     Http_PDU    RecvHttp;
@@ -67,5 +67,5 @@ private:
 	bool*		__RunHandler;
 };
 
-#endif /* __OBSS_HTTP_H__ */
+#endif /* __COMM_HTTP_H__ */
 

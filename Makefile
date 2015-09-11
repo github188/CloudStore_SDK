@@ -8,38 +8,35 @@
 #
 ###############################################################################
 
-
 .EXPORT_ALL_VARIABLES:
 
-#DEBUG = -g
-
-INCLUDE = -I./include -I./instances
+INCLUDE = -I./include -I./comm/include
 		 
-CFLAGS = -Wall -O6 $(INCLUDE) -fPIC
+CFLAGS = -Wall -O6 $(INCLUDE)
 CFLAGS += $(shell if $(CC) -march=i686 -S -o /dev/null -xc /dev/null >/dev/null 2>&1; then echo "-march=i686"; fi)
 #CFLAGS += -D __OBSS_TRACE -D __OBSS_CHECK
 
 LIBS =
 
-OBJS = 	./src/obss_base64.o \
-		./src/obss_hmac-sha1.o \
-		./src/obss_md5.o \
-		./src/obss_time.o \
-		./src/obss_xml.o \
-		./src/obss_net.o \
-		./src/obss_utils.o \
-		./src/obss_data-struct.o \
-		./src/obss_auth.o \
-		./src/obss_tcptrans.o \
-		./src/obss_http.o \
+OBJS = 	./comm/src/comm_base64.o \
+		./comm/src/comm_hmac-sha1.o \
+		./comm/src/comm_md5.o \
+		./comm/src/comm_time.o \
+		./comm/src/comm_xml.o \
+		./comm/src/comm_net.o \
+		./comm/src/comm_utils.o \
+		./comm/src/comm_data.o \
+		./comm/src/comm_auth.o \
+		./comm/src/comm_tcptrans.o \
+		./comm/src/comm_http.o \
 		./src/obss_client.o \
 		./src/obss_operation.o \
-		./instances/obss_c_style.o
+		./src/obss_c-wrapper.o
 
 CC = arm-hisiv100nptl-linux-c++
 
 
-all: obss_sdk
+all: obss_sdk 
 
 obss_sdk: $(OBJS)
 	ar rcs libobsssdk.a $(OBJS) 
@@ -49,7 +46,6 @@ obss_sdk: $(OBJS)
 	$(CC) $(CFLAGS) -c -o $@ $<
 
 clean:
-	rm -f ./src/*.o
-	rm -f ./instances/*.o
+	rm -f ./src/*.o ./comm/src/*.o
 	rm -f *.o *.a *.so
 

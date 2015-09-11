@@ -8,8 +8,8 @@
 *
 *******************************************************************************/
 
-#ifndef __OBSS_XML_H__
-#define __OBSS_XML_H__
+#ifndef __COMM_XML_H__
+#define __COMM_XML_H__
 
 /**
  * ttxml - tiny XML library for parsing (trusted!) XML documents.
@@ -74,4 +74,4 @@ XmlNode * xml_find(XmlNode *xml, const char *name);
 
 XmlNode *xml_load_buffer(const char *buffer, unsigned int buffer_len);
 
-#endif /* __OBSS_XML_H__ */
+#endif /* __COMM_XML_H__ */

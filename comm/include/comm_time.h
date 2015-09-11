@@ -8,12 +8,12 @@
 *
 *******************************************************************************/
 
-#ifndef __OBSS_TIME_H__
-#define __OBSS_TIME_H__
+#ifndef __COMM_TIME_H__
+#define __COMM_TIME_H__
 
 
 /** Get GTM time as format HTTP/1.1 */
 void time_GetGmt(char *gmtTime, int maxlen);
 
 
-#endif /* __OBSS_TIME_H__ */
+#endif /* __COMM_TIME_H__ */

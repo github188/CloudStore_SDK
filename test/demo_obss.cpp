@@ -367,7 +367,7 @@ void TEST_DeleteMultiObjects(OBSS_Client* client)
 	printf("\n\n------- %s START\n", __func__);
 
 	OBSS_Operation operation(client);
-	OBSS_Queue objectQueue;
+	COMM_Queue objectQueue;
 	int ret = 0;
 
 	(void)objectQueue.pushBack("A363/2015/6/12/A363-1.ts");

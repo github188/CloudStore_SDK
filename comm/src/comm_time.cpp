@@ -13,7 +13,7 @@
 #include <time.h>
 #include <sys/time.h>
 
-#include "obss_time.h"
+#include "comm_time.h"
 
 
 void time_GetGmt(char *gmtTime, int maxlen)

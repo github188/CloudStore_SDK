@@ -8,14 +8,17 @@
 *
 *******************************************************************************/
 
-#ifndef __OBSS_UTILS_H__
-#define __OBSS_UTILS_H__
+#ifndef __COMM_UTILS_H__
+#define __COMM_UTILS_H__
 
 
 #include <string.h>
 #include <stdlib.h>
 #include <stdio.h>
 
+
+#define RET_OK		0
+#define RET_ERROR	-1
 
 /*
  * Types Defination
@@ -30,21 +33,15 @@ typedef unsigned long           ulong;
 typedef long long               int64;
 typedef unsigned long long      uint64;
 
-#define FALSE 0
-#define TRUE 1
-
-#define RET_OK		0
-#define RET_ERROR	-1
-
 
 /*
  * Traceability Defination
 */
-#define __OBSS_TRACE
-//#define __OBSS_CHECK
-//#define __OBSS_DEBUG
+#define __CS_TRACE_
+#define __CS_CHECK_
+#define __CS_DEBUG_
 
-#ifdef __OBSS_CHECK
+#ifdef __CS_CHECK_
 #define CHECK(val) { \
     if (!(val)) { \
         fprintf(stdout, __FILE__ ":%d [%s] CHECK(" #val ") failed!\n", __LINE__, __FUNCTION__);	\
@@ -70,13 +67,13 @@ typedef unsigned long long      uint64;
 }
 #endif
 
-#ifdef __OBSS_TRACE
+#ifdef __CS_TRACE_
 #define TRACE(format,...) fprintf(stdout, __FILE__ ":%d TRACE(%s): " format "\n", __LINE__, __FUNCTION__, ##__VA_ARGS__)
 #else
 #define TRACE(format,...)
 #endif
 
-#ifdef __OBSS_DEBUG
+#ifdef __CS_DEBUG_
 #define DEBUGMSG(format,...) fprintf(stdout, __FILE__":%d [%s] DEBUG: "format"\n", __LINE__, __FUNCTION__, ##__VA_ARGS__)
 #else
 #define DEBUGMSG(format, ...)
@@ -98,5 +95,5 @@ size_t fileGetFileSize(const char *fileName);
 
 
 
-#endif /* __OBSS_UTILS_H__ */
+#endif /* __COMM_UTILS_H__ */
 

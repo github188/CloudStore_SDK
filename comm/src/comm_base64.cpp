@@ -9,7 +9,7 @@
 *******************************************************************************/
 
 
-#include "obss_base64.h"
+#include "comm_base64.h"
 
 
 int base64Encode(const unsigned char *in, unsigned int inLen, char *out)

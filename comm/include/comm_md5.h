@@ -8,8 +8,8 @@
 *
 *******************************************************************************/
 
-#ifndef __OBSS_MD5_H__
-#define __OBSS_MD5_H__
+#ifndef __COMM_MD5_H__
+#define __COMM_MD5_H__
 
 /*
  * This package supports both compile-time and run-time determination of CPU
@@ -51,5 +51,5 @@ void obss_md5_finish(md5_state_t *pms, md5_byte_t digest[16]);
 }
 #endif
 
-#endif /* __OBSS_MD5_H__ */
+#endif /* __COMM_MD5_H__ */
 

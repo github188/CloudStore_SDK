@@ -8,9 +8,9 @@
 *
 *******************************************************************************/
 
-
-#include "obss_utils.h"
+#include "comm_utils.h"
 #include "obss_client.h"
+
 
 OBSS_Client::OBSS_Client()
 {

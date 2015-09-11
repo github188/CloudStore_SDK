@@ -9,8 +9,8 @@
 *******************************************************************************/
 
 
-#include "obss_net.h"
-#include "obss_tcptrans.h"
+#include "comm_net.h"
+#include "comm_tcptrans.h"
 
 
 #define TCP_TIMEOUT		3

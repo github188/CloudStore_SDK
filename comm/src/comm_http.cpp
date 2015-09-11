@@ -8,8 +8,8 @@
 *
 *******************************************************************************/
 
-#include "obss_net.h"
-#include "obss_http.h"
+#include "comm_net.h"
+#include "comm_http.h"
 
 
 #define HTTP_TCP_BUF_SIZE	1452
@@ -280,7 +280,7 @@ int Http_Trans::saveContent(FILE* fp)
 	ret = 1;
 	while((saved_content_len < content_len) && (ret > 0)) 
 	{
-		if (!(*__RunHandler))
+		if (__RunHandler && !(*__RunHandler))
 		{
 			return RET_ERROR;
 		}
@@ -323,7 +323,7 @@ int Http_Trans::saveContent(char* dataBuff, const size_t rangeLen)
 	ret = 1;
 	while((saved_content_len < content_len) && (ret > 0))
 	{
-		if (!(*__RunHandler))
+		if (__RunHandler && !(*__RunHandler))
 		{
 			return RET_ERROR;
 		}
@@ -353,7 +353,7 @@ int Http_Trans::saveContent(char* dataBuff, const size_t rangeLen)
 }
 
 
-int Http_Trans::__parseChunk(OBSS_Buffer* obssBuff, const OBSS_Buffer* chunkBuff)
+int Http_Trans::__parseChunk(COMM_Buffer* obssBuff, const COMM_Buffer* chunkBuff)
 {
 	CHECK_RET(obssBuff != NULL, RET_ERROR);
 	CHECK_RET(chunkBuff != NULL, RET_ERROR);
@@ -384,7 +384,7 @@ int Http_Trans::__parseChunk(OBSS_Buffer* obssBuff, const OBSS_Buffer* chunkBuff
 }
 
 
-int Http_Trans::saveBody(OBSS_Buffer* obssBuff)
+int Http_Trans::saveBody(COMM_Buffer* obssBuff)
 {
 	int		ret = 0;
 	char	tcp_buf[HTTP_TCP_BUF_SIZE] = {0};
@@ -431,7 +431,7 @@ int Http_Trans::saveBody(OBSS_Buffer* obssBuff)
 	CHECK_RET(http_header != NULL, RET_ERROR);
 	CHECK_RET(strcmp(http_header, "chunked") == 0, RET_ERROR);
 	
-	OBSS_Buffer chunkBuff;
+	COMM_Buffer chunkBuff;
 	if (RecvHttp.httpBody)
 	{
 		ret = RecvHttp.dataEnd - RecvHttp.httpBody;

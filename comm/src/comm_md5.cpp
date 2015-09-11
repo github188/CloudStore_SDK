@@ -11,7 +11,7 @@
 
 #include <string.h>
 
-#include "obss_md5.h"
+#include "comm_md5.h"
 
 #undef BYTE_ORDER	/* 1 = big-endian, -1 = little-endian, 0 = unknown */
 #ifdef ARCH_IS_BIG_ENDIAN

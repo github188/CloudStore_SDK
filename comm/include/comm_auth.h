@@ -8,8 +8,8 @@
 *
 *******************************************************************************/
 
-#ifndef __OBSS_AUTH_H__
-#define __OBSS_AUTH_H__
+#ifndef __COMM_AUTH_H__
+#define __COMM_AUTH_H__
 
 
 int FormAuthLine(char* authLine,
@@ -26,5 +26,5 @@ int EncodeUrl(char* encoded_url, char const *url);
 
 void ComputeMd5Digest(char* base64Md5, const unsigned char* pData, int dataLen);
 
-#endif /* __OBSS_AUTH_H__ */
+#endif /* __COMM_AUTH_H__ */
 

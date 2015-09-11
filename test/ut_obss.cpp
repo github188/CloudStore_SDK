@@ -238,7 +238,7 @@ TEST(ALI_TEST, deleteObject)
 TEST(ALI_TEST, deleteMultiObjects)
 {
 	OBSS_Test operation(&clientAli);
-	OBSS_Queue objectQueue;
+	COMM_Queue objectQueue;
 
 	(void)objectQueue.pushBack("test/stream/A_1024");
 	(void)objectQueue.pushBack("test/stream/B_700K");
@@ -480,7 +480,7 @@ TEST(JOV_TEST, deleteObject)
 TEST(JOV_TEST, deleteMultiObjects)
 {
 	OBSS_Test operation(&clientJov);
-	OBSS_Queue objectQueue;
+	COMM_Queue objectQueue;
 
 	(void)objectQueue.pushBack("test/stream/A_1024");
 	(void)objectQueue.pushBack("test/stream/B_700K");

@@ -20,8 +20,8 @@
 #include <sys/socket.h>
 #include <arpa/inet.h>
 
-#include "obss_net.h"
-#include "obss_utils.h"
+#include "comm_net.h"
+#include "comm_utils.h"
 
 
 int tcp_GetHostIp(const char *hostName,  char *ipAddr, int ipLen)

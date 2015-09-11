@@ -13,7 +13,7 @@
 #include <string.h>
 #include <stdio.h>
 
-#include "obss_xml.h"
+#include "comm_xml.h"
 
 #ifndef BUFFER
 #define BUFFER 2 * 1024 * 1024 

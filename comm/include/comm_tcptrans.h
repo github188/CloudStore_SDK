@@ -8,11 +8,11 @@
 *
 *******************************************************************************/
 
-#ifndef __OBSS_TRANSE_H__
-#define __OBSS_TRANSE_H__
+#ifndef __COMM_TCPTRANSE_H__
+#define __COMM_TCPTRANSE_H__
 
 
-#include "obss_utils.h"
+#include "comm_utils.h"
 
 
 class Tcp_Trans
@@ -33,5 +33,5 @@ private:
 	uint16	__RemotePort;
 };
 
-#endif /* __OBSS_TRANSE_H__ */
+#endif /* __COMM_TCPTRANSE_H__ */
 

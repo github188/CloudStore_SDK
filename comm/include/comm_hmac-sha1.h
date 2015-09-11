@@ -8,8 +8,8 @@
 *
 *******************************************************************************/
 
-#ifndef __OBSS_HAMC_SHA1_H__
-#define __OBSS_HAMC_SHA1_H__
+#ifndef __COMM_HAMC_SHA1_H__
+#define __COMM_HAMC_SHA1_H__
 
 
 /*
@@ -19,4 +19,4 @@ void HMAC_SHA1(unsigned char hmac[20], const unsigned char *key, unsigned int ke
 				   const unsigned char *message, unsigned int message_len);
 
 
-#endif /* __OBSS_HAMC_SHA1_H__ */
+#endif /* __COMM_HAMC_SHA1_H__ */

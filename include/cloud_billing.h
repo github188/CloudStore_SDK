@@ -15,6 +15,12 @@
 #include "comm_http.h"
 
 
+typedef struct CLOUD_PackageInfo
+{
+	
+}CLOUD_PackageInfo;
+
+
 class CLOUD_Billing
 {
 public:
@@ -24,7 +30,7 @@ public:
 public:
 	int reportFlux(const char* userSid, const size_t byteFlux);
 	int getBalance(const char* userSid, size_t& currBalance);
-
+	int getPackageInfo(const char* userSid, CLOUD_PackageInfo& packageInfo);
 private:
 	Http_Trans*		__HttpTrans;
 	char 			__RemoteHost[64];

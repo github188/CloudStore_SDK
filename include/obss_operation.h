@@ -291,7 +291,7 @@ public:
 				-1		internal error	**/
 	int genSignUrl(char* signUrl, const char* method, const char* bucket, const char* object, time_t expires);
 
-#if 0
+
 /****************************************************************************************************
 *  Following interfaces should be used on Ali OSS only.
 *****************************************************************************************************/
@@ -342,7 +342,7 @@ public:
 				4091	Position is not equal to length	of object
 				4092	the object is not appendable	**/
 	int appendObjFromBuffer(const char* bucket, const char* object, size_t& position, const char* buff, const size_t buffLen);
-#endif
+
 
 private:
 	void __releaseTrans();
@@ -350,9 +350,10 @@ private:
 	int __getErrorCode(const int rsltCode, const char* errMsg);
 	int __parseErrorCode(const int rsltCode, const char* xmlBuff, const int xmlLen);
 	int __parseListObjRslt(OBSS_ListObjRslt* listObjRslt, const char* xmlBuff, const int xmlLen);
-	int __parseDeleteMultiObjsRslt(COMM_Queue* objectQueue, const char* xmlBuff, const int xmlLen);
+
 public:
 	bool			RunHandle;
+
 private:
 	OBSS_Client* 	__Client;
 	Http_Trans*		__HttpTrans;

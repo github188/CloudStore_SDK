@@ -276,14 +276,6 @@ int OBSS_Operation::__parseListObjRslt(OBSS_ListObjRslt* listObjRslt, const char
 	return RET_OK;
 }
 
-
-int OBSS_Operation::__parseDeleteMultiObjsRslt(COMM_Queue* objectQueue, const char* xmlBuff, const int xmlLen)
-{
-	return RET_OK;
-}
-
-
-
 int OBSS_Operation::CallBack_parseHeadObjInfo(Http_PDU* recvHead)
 {
 	return RET_OK;
@@ -1290,7 +1282,7 @@ int OBSS_Operation::genSignUrl(char* signUrl,
 	return RET_OK;
 }
 
-#if 0 
+
 /*
 POST /oss_test_append_object_from_file?append&position=0 HTTP/1.1
 User-Agent: aliyun-sdk-c/libaos_0.0.3(Compatible oss_test)
@@ -1509,6 +1501,4 @@ int OBSS_Operation::appendObjFromBuffer(const char* bucket, const char* object, 
 	
 	return RET_OK;
 }
-#endif
-
 

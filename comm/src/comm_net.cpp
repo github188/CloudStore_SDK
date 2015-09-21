@@ -78,7 +78,7 @@ int tcp_Connect(const char *hostip, unsigned short port, int timeout)
 	addr.sin_port = htons(port);
 	
 	flags = fcntl(fd, F_GETFL, 0);
-	(void)fcntl(fd, F_SETFL, flags | O_NONBLOCK);
+	//(void)fcntl(fd, F_SETFL, flags | O_NONBLOCK);
 
 	ret = connect(fd, (struct sockaddr *)&addr, sizeof(struct sockaddr)); 
 	if (ret == 0) 
@@ -118,7 +118,7 @@ int tcp_Connect(const char *hostip, unsigned short port, int timeout)
 
 int tcp_Send(int fd, const char* pData, int len, int timeout)
 {
-		    int				ret = -1;
+	int				ret = -1;
 	int				sendlen = 0;
 	struct timeval	tv;
 	fd_set			writefd;
@@ -141,7 +141,7 @@ int tcp_Send(int fd, const char* pData, int len, int timeout)
 		tv.tv_usec = 0;
 
 		ret = select(fd + 1, NULL, &writefd, NULL, &tv);
-		if (ret <= 0)
+		if (ret < 0)
 		{
 			TRACE("fd=%d, ret=%d, error: [%d] %s", fd, ret, errno, strerror(errno));
 			return -1;

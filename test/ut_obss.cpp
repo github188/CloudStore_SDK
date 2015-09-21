@@ -36,7 +36,7 @@ TEST(ALI_TEST, initial)
 	EXPECT_STREQ(ALI_TEST_ACCESS_ID, clientAli.AccessId);
 	EXPECT_STREQ(ALI_TEST_ACCESS_KEY, clientAli.AccessKey);
 }
-
+#if 1
 TEST(ALI_TEST, headObjInfo)
 {
 	OBSS_Test operation(&clientAli);
@@ -50,12 +50,13 @@ TEST(ALI_TEST, putObjFromFile)
 {
 	OBSS_Test operation(&clientAli);
 	size_t billingSize = 0;
-	EXPECT_EQ(RET_OK, operation.putObjFromFile(ALI_TEST_BUCKET, "test/file/ut.out", "ut.out", &billingSize));
-	EXPECT_EQ(RET_OK, operation.putObjFromFile(ALI_TEST_BUCKET, "test/file/libobsssdk.a", "libobsssdk.a"));
-	EXPECT_EQ(4041, operation.putObjFromFile("no-bucket", "test/file/libobsssdk.a", "libobsssdk.a"));
-	EXPECT_EQ(400, operation.putObjFromFile("Invalid_Bucket", "test/file/libobsssdk.a", "libobsssdk.a"));
-	EXPECT_EQ(RET_ERROR, operation.putObjFromFile(ALI_TEST_BUCKET, "test/file/libobsssdk.a", "NO_libobsssdk.a"));
+	EXPECT_EQ(RET_OK, operation.putObjFromFile(ALI_TEST_BUCKET, "test/file/ut_obss.out", "ut_obss.out", &billingSize));
+	EXPECT_EQ(RET_OK, operation.putObjFromFile(ALI_TEST_BUCKET, "test/file/libcldipc.a", "libcldipc.a"));
+	EXPECT_EQ(4041, operation.putObjFromFile("no-bucket", "test/file/libobsssdk.a", "libcldipc.a"));
+	EXPECT_EQ(400, operation.putObjFromFile("Invalid_Bucket", "test/file/libcldipc.a", "libcldipc.a"));
+	EXPECT_EQ(RET_ERROR, operation.putObjFromFile(ALI_TEST_BUCKET, "test/file/libcldipc.a", "NO_libcldipc.a"));
 }
+#endif
 
 TEST(ALI_TEST, putObjFromStream)
 {
@@ -98,6 +99,7 @@ TEST(ALI_TEST, putObjFromStream)
 	EXPECT_EQ(RET_OK, operation.putObjFromStream_Finish());
 }
 
+#if 1
 TEST(ALI_TEST, putObjFromBuffer)
 {
 	OBSS_Test operation(&clientAli);
@@ -120,13 +122,13 @@ TEST(ALI_TEST, appendObjFromFile)
 	OBSS_Test operation(&clientAli);
 
 	size_t position = 0;
-	EXPECT_EQ(RET_OK, operation.appendObjFromFile(ALI_TEST_BUCKET, "test/file/Append_test", "ut.out", position));
-	EXPECT_EQ(RET_OK, operation.appendObjFromFile(ALI_TEST_BUCKET, "test/file/Append_test", "libobsssdk.a", position));
-	EXPECT_EQ(position, fileGetFileSize("ut.out") + fileGetFileSize("libobsssdk.a"));
+	EXPECT_EQ(RET_OK, operation.appendObjFromFile(ALI_TEST_BUCKET, "test/file/Append_test", "ut_obss.out", position));
+	EXPECT_EQ(RET_OK, operation.appendObjFromFile(ALI_TEST_BUCKET, "test/file/Append_test", "libcldipc.a", position));
+	EXPECT_EQ(position, fileGetFileSize("ut_obss.out") + fileGetFileSize("libcldipc.a"));
 
 	position = 0;
-	EXPECT_EQ(4091, operation.appendObjFromFile(ALI_TEST_BUCKET, "test/file/Append_test", "ut.out", position));
-	EXPECT_EQ(4092, operation.appendObjFromFile(ALI_TEST_BUCKET, "test/file/ut.out", "ut.out", position));
+	EXPECT_EQ(4091, operation.appendObjFromFile(ALI_TEST_BUCKET, "test/file/Append_test", "ut_obss.out", position));
+	EXPECT_EQ(4092, operation.appendObjFromFile(ALI_TEST_BUCKET, "test/file/ut_obss.out", "ut_obss.out", position));
 }
 
 TEST(ALI_TEST, appendObjFromBuffer)
@@ -207,7 +209,7 @@ TEST(ALI_TEST, listObject)
 	EXPECT_EQ(3, (int)list_rucket_rslt.ObjectQueue.getLen());
 
 	list_rucket_rslt.destroy();
-	EXPECT_EQ(RET_OK, operation.listObject(&list_rucket_rslt, ALI_TEST_BUCKET, NULL, "test/file/libobsssdk.a", 10, "test/"));
+	EXPECT_EQ(RET_OK, operation.listObject(&list_rucket_rslt, ALI_TEST_BUCKET, NULL, "test/file/libcldipc.a", 10, "test/"));
 	EXPECT_EQ(4, (int)list_rucket_rslt.ObjectQueue.getLen());
 
 	list_rucket_rslt.destroy();
@@ -230,9 +232,9 @@ TEST(ALI_TEST, deleteObject)
 {
 	OBSS_Test operation(&clientAli);
 
-	EXPECT_EQ(RET_OK, operation.deleteObject(ALI_TEST_BUCKET, "test/file/libobsssdk.a"));
+	EXPECT_EQ(RET_OK, operation.deleteObject(ALI_TEST_BUCKET, "test/file/libcldipc.a"));
 	EXPECT_EQ(RET_OK, operation.deleteObject(ALI_TEST_BUCKET, "test/file/NOT_EXIST"));
-	EXPECT_EQ(4041, operation.deleteObject("no-bucket", "test/file/libobsssdk.a"));
+	EXPECT_EQ(4041, operation.deleteObject("no-bucket", "test/file/libcldipc.a"));
 }
 
 TEST(ALI_TEST, deleteMultiObjects)
@@ -328,10 +330,10 @@ TEST(JOV_TEST, putObjFromFile)
 {
 	OBSS_Test operation(&clientJov);
 	size_t billingSize = 0;
-	EXPECT_EQ(RET_OK, operation.putObjFromFile(JOV_TEST_BUCKET, "test/file/ut.out", "ut.out", &billingSize));
-	EXPECT_EQ(RET_OK, operation.putObjFromFile(JOV_TEST_BUCKET, "test/file/libobsssdk.a", "libobsssdk.a"));
-	EXPECT_EQ(4041, operation.putObjFromFile("no-bucket", "test/file/libobsssdk.a", "libobsssdk.a"));
-	EXPECT_EQ(RET_ERROR, operation.putObjFromFile(JOV_TEST_BUCKET, "test/file/libobsssdk.a", "NO_libobsssdk.a"));
+	EXPECT_EQ(RET_OK, operation.putObjFromFile(JOV_TEST_BUCKET, "test/file/ut_obss.out", "ut_obss.out", &billingSize));
+	EXPECT_EQ(RET_OK, operation.putObjFromFile(JOV_TEST_BUCKET, "test/file/libcldipc.a", "libcldipc.a"));
+	EXPECT_EQ(4041, operation.putObjFromFile("no-bucket", "test/file/libcldipc.a", "libcldipc.a"));
+	EXPECT_EQ(RET_ERROR, operation.putObjFromFile(JOV_TEST_BUCKET, "test/file/libcldipc.a", "NO_libcldipc.a"));
 }
 
 TEST(JOV_TEST, putObjFromStream)
@@ -449,7 +451,7 @@ TEST(JOV_TEST, listObject)
 	EXPECT_EQ(3, (int)list_rucket_rslt.ObjectQueue.getLen());
 
 	list_rucket_rslt.destroy();
-	EXPECT_EQ(RET_OK, operation.listObject(&list_rucket_rslt, JOV_TEST_BUCKET, NULL, "test/file/libobsssdk.a", 10, "test/"));
+	EXPECT_EQ(RET_OK, operation.listObject(&list_rucket_rslt, JOV_TEST_BUCKET, NULL, "test/file/libcldipc.a", 10, "test/"));
 	EXPECT_EQ(4, (int)list_rucket_rslt.ObjectQueue.getLen());
 
 	list_rucket_rslt.destroy();
@@ -472,9 +474,9 @@ TEST(JOV_TEST, deleteObject)
 {
 	OBSS_Test operation(&clientJov);
 
-	EXPECT_EQ(RET_OK, operation.deleteObject(JOV_TEST_BUCKET, "test/file/libobsssdk.a"));
+	EXPECT_EQ(RET_OK, operation.deleteObject(JOV_TEST_BUCKET, "test/file/libcldipc.a"));
 	EXPECT_EQ(RET_OK, operation.deleteObject(JOV_TEST_BUCKET, "test/file/NOT_EXIST"));
-	EXPECT_EQ(4041, operation.deleteObject("no-bucket", "test/file/libobsssdk.a"));
+	EXPECT_EQ(4041, operation.deleteObject("no-bucket", "test/file/libcldipc.a"));
 }
 
 TEST(JOV_TEST, deleteMultiObjects)
@@ -571,9 +573,9 @@ TEST(ALI_C_TEST, InitCloudOpt)
 TEST(ALI_C_TEST, UploadObjFromFile)
 {
 	size_t billingSize = 0;
-	EXPECT_EQ(RET_OK, OBSS_UploadObjFromFile(operatorAli_C, C_TEST_YEAR, C_TEST_MONTH, C_TEST_DAY, "ut.out", "ut.out", &billingSize));
-	EXPECT_EQ(RET_OK, OBSS_UploadObjFromFile(operatorAli_C, C_TEST_YEAR, C_TEST_MONTH, C_TEST_DAY, "libobsssdk.a", "libobsssdk.a", &billingSize));
-	EXPECT_EQ(RET_ERROR, OBSS_UploadObjFromFile(operatorAli_C, C_TEST_YEAR, C_TEST_MONTH, C_TEST_DAY, "NO_libobsssdk.a", "NO_libobsssdk.a", &billingSize));
+	EXPECT_EQ(RET_OK, OBSS_UploadObjFromFile(operatorAli_C, C_TEST_YEAR, C_TEST_MONTH, C_TEST_DAY, "ut_obss.out", "ut_obss.out", &billingSize));
+	EXPECT_EQ(RET_OK, OBSS_UploadObjFromFile(operatorAli_C, C_TEST_YEAR, C_TEST_MONTH, C_TEST_DAY, "libcldipc.a", "libcldipc.a", &billingSize));
+	EXPECT_EQ(RET_ERROR, OBSS_UploadObjFromFile(operatorAli_C, C_TEST_YEAR, C_TEST_MONTH, C_TEST_DAY, "NO_libcldipc.a", "NO_libcldipc.a", &billingSize));
 }
 
 TEST(ALI_C_TEST, UploadObjFromStream)
@@ -677,9 +679,9 @@ TEST(JOV_C_TEST, InitCloudOpt)
 TEST(JOV_C_TEST, UploadObjFromFile)
 {
 	size_t billingSize = 0;
-	EXPECT_EQ(RET_OK, OBSS_UploadObjFromFile(operatorJov_C, C_TEST_YEAR, C_TEST_MONTH, C_TEST_DAY, "ut.out", "ut.out", &billingSize));
-	EXPECT_EQ(RET_OK, OBSS_UploadObjFromFile(operatorJov_C, C_TEST_YEAR, C_TEST_MONTH, C_TEST_DAY, "libobsssdk.a", "libobsssdk.a", &billingSize));
-	EXPECT_EQ(RET_ERROR, OBSS_UploadObjFromFile(operatorJov_C, C_TEST_YEAR, C_TEST_MONTH, C_TEST_DAY, "NO_libobsssdk.a", "NO_libobsssdk.a", &billingSize));
+	EXPECT_EQ(RET_OK, OBSS_UploadObjFromFile(operatorJov_C, C_TEST_YEAR, C_TEST_MONTH, C_TEST_DAY, "ut_obss.out", "ut_obss.out", &billingSize));
+	EXPECT_EQ(RET_OK, OBSS_UploadObjFromFile(operatorJov_C, C_TEST_YEAR, C_TEST_MONTH, C_TEST_DAY, "libcldipc.a", "libcldipc.a", &billingSize));
+	EXPECT_EQ(RET_ERROR, OBSS_UploadObjFromFile(operatorJov_C, C_TEST_YEAR, C_TEST_MONTH, C_TEST_DAY, "NO_libcldipc.a", "NO_libcldipc.a", &billingSize));
 }
 
 TEST(JOV_C_TEST, UploadObjFromStream)
@@ -749,4 +751,5 @@ TEST(JOV_C_TEST, FinalCloudClnt)
 	}
 }
 
+#endif
 

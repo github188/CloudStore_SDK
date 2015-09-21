@@ -9,7 +9,10 @@
 *******************************************************************************/
 
 #include <pthread.h>
+
+#include "comm_time.h"
 #include "test.h"
+
 
 
 #define __TEST_ALI
@@ -63,7 +66,7 @@ void TEST_PutObjectFromFile(OBSS_Client* client)
 	
 	int ret = 0;
 	
-	ret = operation.putObjFromFile(TEST_BUCKET, "test_demo", "test_demo");
+	ret = operation.putObjFromFile(TEST_BUCKET, "demo_obss.out", "demo_obss.out");
 	printf("putObjFromFile test_demo ret = %d\n", ret);
 
 	ret = operation.putObjFromFile(TEST_BUCKET, "test/file/libobsssdk.a", "libobsssdk.a");
@@ -507,7 +510,7 @@ void* Thread_C_UploadFromStream(void* param)
 	
 	for (int i = 1; i <= 100000; ++i)
 	{
-		
+		char gmt_time[64] = {0};
 		ret = C_UploadFromStream(operator_C, name_A, g_buff_A, sizeof(g_buff_A), LogFile);
 		if (ret == RET_OK) count_A++;
 		
@@ -517,14 +520,15 @@ void* Thread_C_UploadFromStream(void* param)
 		ret = C_UploadFromStream(operator_C, name_C, g_buff_C, sizeof(g_buff_C), LogFile);
 		if (ret == RET_OK) count_C++;
 
-		fprintf(LogFile, "i = %d, A = %d, B = %d, C = %d\n", i, count_A, count_B, count_C);
+		time_GetGmt(gmt_time, sizeof(gmt_time));
+		fprintf(LogFile, "%s i = %d, A = %d, B = %d, C = %d\n", gmt_time, i, count_A, count_B, count_C);
 		(void)fflush(LogFile);
 		(void)fflush(stdout);
 
-		(void)OBSS_UploadObjFromFile(operator_C, C_TEST_YEAR, C_TEST_MONTH, C_TEST_DAY,
-				(const char*)param, (const char*)param, NULL);
-		(void)OBSS_UploadObjFromFile(operator_C, C_TEST_YEAR, C_TEST_MONTH, C_TEST_DAY,
-				name_std, "stdout.log", NULL);
+		//(void)OBSS_UploadObjFromFile(operator_C, C_TEST_YEAR, C_TEST_MONTH, C_TEST_DAY,
+		//		(const char*)param, (const char*)param, NULL);
+		//(void)OBSS_UploadObjFromFile(operator_C, C_TEST_YEAR, C_TEST_MONTH, C_TEST_DAY,
+		//		name_std, "stdout.log", NULL);
 	}
 
 
@@ -559,13 +563,13 @@ void TEST_Thread_C_UploadFromStream()
 	ret = pthread_create(&thread_id2, NULL, Thread_C_UploadFromStream, (void*)"2.log");
 	printf("Create thread 2 ret = %d\n", ret);
 
-	pthread_t	thread_id3;
-	ret = pthread_create(&thread_id3, NULL, Thread_C_UploadFromStream, (void*)"3.log");
-	printf("Create thread 3 ret = %d\n", ret);
+	//pthread_t	thread_id3;
+	//ret = pthread_create(&thread_id3, NULL, Thread_C_UploadFromStream, (void*)"3.log");
+	//printf("Create thread 3 ret = %d\n", ret);
 	
 	(void)pthread_join(thread_id1, NULL);
 	(void)pthread_join(thread_id2, NULL);
-	(void)pthread_join(thread_id3, NULL);
+	//(void)pthread_join(thread_id3, NULL);
 
 	(void)mapStdoutBack();
 }
@@ -585,8 +589,9 @@ int main(int argc, char* argv[])
 	printf("Remote Host: %s\n",client.RemoteHost);
 	printf("Http Port: %d\n",client.HttpPort);
 	printf("User Agent: %s\n",client.UserAgent);
-	printf("Access Id: %s\n",client.AccessId);
+/*	printf("Access Id: %s\n",client.AccessId);
 	printf("Access Key: %s\n",client.AccessKey);
+*/
 
 	//TEST_HeadObjInfo(&client);
 	//TEST_PutObjectFromFile(&client);
@@ -603,7 +608,6 @@ int main(int argc, char* argv[])
 	//TEST_DeleteMultiObjects(&client);
 	//TEST_DeleteDir(&client);
 	TEST_Thread_C_UploadFromStream();
-	//(void)Thread_C_UploadFromStream((void*)"demo_main.log");
 	
 	return 0;
 }

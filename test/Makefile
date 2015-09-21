@@ -19,7 +19,7 @@ INCLUDE = -I../include -I../comm/include
 
 GCOVR = -fprofile-arcs -ftest-coverage
 
-CFLAGS = -Wall -O0 $(DEBUG) $(INCLUDE)
+CFLAGS = -Wall -O0 $(DEBUG) $(INCLUDE) -fPIC
 #CFLAGS += -D __OBSS_TRACE -D __OBSS_CHECK
 #CFLAGS += -D __OBSS_DEBUG
 

@@ -79,10 +79,15 @@ int tcp_Connect(const char *hostip, unsigned short port, int timeout)
 	
 	flags = fcntl(fd, F_GETFL, 0);
 	//(void)fcntl(fd, F_SETFL, flags | O_NONBLOCK);
-
+	
+	//struct timeval sr_timeout = {3,0};  
+	//setsockopt(fd, SOL_SOCKET, SO_SNDTIMEO, (char *)&sr_timeout, sizeof(struct timeval));
+	//setsockopt(fd, SOL_SOCKET, SO_RCVTIMEO, (char *)&sr_timeout, sizeof(struct timeval));
+	
 	ret = connect(fd, (struct sockaddr *)&addr, sizeof(struct sockaddr)); 
 	if (ret == 0) 
 	{
+		//(void)fcntl(fd, F_SETFL, flags | O_NONBLOCK);
 		return fd;
 	}
 
@@ -113,6 +118,7 @@ int tcp_Connect(const char *hostip, unsigned short port, int timeout)
 		return -1;
 	}
 
+	//(void)fcntl(fd, F_SETFL, flags | O_NONBLOCK);
 	return fd;
 }
 
@@ -183,11 +189,32 @@ int tcp_Recv(int fd, char* pData, int len, int timeout)
 		TRACE("fd=%d, ret=%d, error: [%d] %s", fd, ret, errno, strerror(errno));
 		return -1;
 	} 
-
+	
+	#if 1
 	ret = recv(fd, pData, len, 0);
 	if(ret < 0) {
 		TRACE("fd=%d, ret=%d, error: [%d] %s", fd, ret, errno, strerror(errno));
 	} 
+	#else
+	for(int i=0; i<50000; ++i)
+	{
+		ret = recv(fd, pData, len, 0);
+		if (ret >= 0)
+		{
+			return ret;
+		}
+		else if (ret < 0)
+		{
+			if (errno == EINTR || errno == EWOULDBLOCK || errno == EAGAIN)
+				continue;
+			else
+			{
+				TRACE("fd=%d, ret=%d, error: [%d] %s", fd, ret, errno, strerror(errno));
+				break;
+			}
+		}
+	}
+	#endif
 	
 	return ret;
 }

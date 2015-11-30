@@ -574,6 +574,55 @@ void TEST_Thread_C_UploadFromStream()
 	(void)mapStdoutBack();
 }
 
+
+#include "comm_udptrans.h"
+void TEST_UdpClient()
+{
+	int ret = RET_OK;
+	Udp_Trans udp_client;
+	
+	ret = udp_client.config("127.0.0.1", 8888);
+	CHECK(ret == RET_OK);
+	
+	ret = udp_client.connect();
+	CHECK(ret == RET_OK);
+
+	#define	MAXLINE_CHARS 255
+	char sendline[MAXLINE_CHARS], recvline[MAXLINE_CHARS+1];
+	while(fgets(sendline, MAXLINE_CHARS, stdin) != NULL)
+	{
+		/* read a line and send to server */
+		ret = udp_client.send(sendline, strlen(sendline));
+		CHECK(ret >= 0);
+		/* receive data from server */
+		ret = udp_client.recv(recvline, MAXLINE_CHARS);
+		CHECK(ret >= 0);
+		
+		recvline[ret] = 0; /* terminate string */
+		fputs(recvline, stdout);
+	}
+
+	return;
+}
+
+#include "jvn_flux.h"
+void TEST_ReportFlux()
+{
+	int ret = RET_OK;
+	JVN_Flux fluxClient;
+
+	char dev_group[4] = {0x42,0,0,0};
+	int dev_ystno = 0x04EBB131;
+	
+	ret = fluxClient.config("172.16.25.252", 9010, 10, dev_group, dev_ystno);
+	CHECK(ret == RET_OK);
+
+	ret = fluxClient.reportFlux(1,1024);
+	CHECK(ret == RET_OK);
+
+	return;
+}
+
 int main(int argc, char* argv[])
 {
 	OBSS_Client client;
@@ -607,8 +656,10 @@ int main(int argc, char* argv[])
 	//TEST_DeleteObject(&client);
 	//TEST_DeleteMultiObjects(&client);
 	//TEST_DeleteDir(&client);
-	TEST_Thread_C_UploadFromStream();
-	
+	//TEST_Thread_C_UploadFromStream();
+	//TEST_UdpClient();
+	TEST_ReportFlux();
+
 	return 0;
 }
 

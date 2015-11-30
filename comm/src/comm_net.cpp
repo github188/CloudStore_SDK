@@ -24,6 +24,9 @@
 #include "comm_utils.h"
 
 
+/*****************
+* TCP Socket Api *
+*****************/
 int tcp_GetHostIp(const char *hostName,  char *ipAddr, int ipLen)
 {
 	struct addrinfo hints;
@@ -225,4 +228,123 @@ void tcp_Close(int fd)
 	return;
 }
 
+
+/*****************
+* UDP Socket Api *
+*****************/
+int udp_Connect(const char* hostip, const int hostport)
+{
+	int sock = -1;
+	int	ret = 0;
+	struct sockaddr_in	addr;
+
+	//create socket
+	sock = socket(AF_INET, SOCK_DGRAM, 0);
+	if(sock < 0)
+	{
+		close(sock);
+		TRACE("create socket failed: sock=%d, error: [%d] %s", sock, errno, strerror(errno));
+		return -1;
+	}
+	
+	struct timeval sr_timeout = {2,0};  
+	setsockopt(sock, SOL_SOCKET, SO_SNDTIMEO, (char *)&sr_timeout, sizeof(struct timeval));
+	setsockopt(sock, SOL_SOCKET, SO_RCVTIMEO, (char *)&sr_timeout, sizeof(struct timeval));
+
+	//connect socket
+	addr.sin_family = AF_INET;
+	addr.sin_addr.s_addr = inet_addr(hostip);
+	addr.sin_port = htons(hostport);
+	ret = connect(sock, (struct sockaddr *)&addr, sizeof(struct sockaddr));
+	if(ret < 0)
+	{
+		close(sock);
+		TRACE("connect socket failed: sock=%d, ret=%d, error: [%d] %s", sock, ret, errno, strerror(errno));
+		return -1;
+	}
+	
+	return sock;
+}
+
+int udp_Send(int sock, const char* pData, int len, int timeout)
+{
+	int				ret = -1;
+	int				sendlen = 0;
+	struct timeval	tv;
+	fd_set			writefd;
+	int				retry = 0;
+	char			*ptr = (char*) pData;
+
+	while( sendlen < len ) 
+	{
+		FD_ZERO(&writefd);
+
+		if(sock <= 0) 
+		{
+			TRACE("sock=%d", sock);
+			return -1;
+		}
+
+		FD_SET(sock, &writefd);
+
+		tv.tv_sec = timeout;
+		tv.tv_usec = 0;
+
+		ret = select(sock + 1, NULL, &writefd, NULL, &tv);
+		if (ret < 0)
+		{
+			TRACE("sock=%d, ret=%d, error: [%d] %s", sock, ret, errno, strerror(errno));
+			return -1;
+		}
+
+		ret = send(sock, ptr+sendlen, len-sendlen, 0);
+		if (ret > 0)
+		{
+			sendlen += ret;
+			retry = 0;
+		}
+		else 
+		{
+			if (retry++ > 5) 
+			{
+				TRACE("sock=%d, ret=%d, error: [%d] %s", sock, ret, errno, strerror(errno));
+				return -1;
+			}
+		}
+	}
+
+	return sendlen;
+}
+
+int udp_Recv(int sock, char* pData, int len, int timeout)
+{
+	int				ret = 0;
+	struct timeval	tv;
+	fd_set			readfd;
+
+	FD_ZERO(&readfd);
+	FD_SET(sock, &readfd);
+
+	tv.tv_sec = timeout;
+	tv.tv_usec = 0;
+
+	ret = select(sock + 1, &readfd, NULL, NULL, &tv);
+	if(ret < 0) {
+		TRACE("sock=%d, ret=%d, error: [%d] %s", sock, ret, errno, strerror(errno));
+		return -1;
+	} 
+	
+	ret = recv(sock, pData, len, 0);
+	if(ret < 0) {
+		TRACE("sock=%d, ret=%d, error: [%d] %s", sock, ret, errno, strerror(errno));
+	} 
+	
+	return ret;
+}
+
+void udp_Close(int sock)
+{
+	close(sock);
+	return;
+}
 

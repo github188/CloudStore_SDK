@@ -36,10 +36,12 @@ IPC_OBJS = 	../comm/src/comm_base64.o \
 			../comm/src/comm_data.o \
 			../comm/src/comm_auth.o \
 			../comm/src/comm_tcptrans.o \
+			../comm/src/comm_udptrans.o \
 			../comm/src/comm_http.o \
 			../src/obss_client.o \
 			../src/obss_operation.o \
-			../src/obss_c-wrapper.o
+			../src/obss_c-wrapper.o	\
+			../src/jvn_flux.o
 IPC_CPPS = $(IPC_OBJS:%.o=%.cpp)
 
 APP_LIB_NAME = libcldapp
@@ -54,12 +56,15 @@ APP_OBJS = 	../comm/src/comm_base64.o \
 			../comm/src/comm_data.o \
 			../comm/src/comm_auth.o \
 			../comm/src/comm_tcptrans.o \
+			../comm/src/comm_udptrans.o \
 			../comm/src/comm_http.o \
 			../src/obss_client.o \
 			../src/obss_operation.o \
 			../src/obss_c-wrapper.o	\
+			../src/jvn_flux.o	\
 			../src/cloud_control.o	\
 			../src/cloud_billing.o
+
 APP_CPPS = $(APP_OBJS:%.o=%.cpp)
 
 all: demo_obss unitest

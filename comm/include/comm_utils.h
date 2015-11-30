@@ -37,9 +37,9 @@ typedef unsigned long long      uint64;
 /*
  * Traceability Defination
 */
-#define __CS_TRACE_
-#define __CS_CHECK_
-#define __CS_DEBUG_
+//#define __CS_TRACE_
+//#define __CS_CHECK_
+//#define __CS_DEBUG_
 
 #ifdef __CS_CHECK_
 #define CHECK(val) { \

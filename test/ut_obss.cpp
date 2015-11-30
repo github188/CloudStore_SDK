@@ -36,7 +36,7 @@ TEST(ALI_TEST, initial)
 	EXPECT_STREQ(ALI_TEST_ACCESS_ID, clientAli.AccessId);
 	EXPECT_STREQ(ALI_TEST_ACCESS_KEY, clientAli.AccessKey);
 }
-#if 1
+
 TEST(ALI_TEST, headObjInfo)
 {
 	OBSS_Test operation(&clientAli);
@@ -56,7 +56,6 @@ TEST(ALI_TEST, putObjFromFile)
 	EXPECT_EQ(400, operation.putObjFromFile("Invalid_Bucket", "test/file/libcldipc.a", "libcldipc.a"));
 	EXPECT_EQ(RET_ERROR, operation.putObjFromFile(ALI_TEST_BUCKET, "test/file/libcldipc.a", "NO_libcldipc.a"));
 }
-#endif
 
 TEST(ALI_TEST, putObjFromStream)
 {
@@ -99,7 +98,6 @@ TEST(ALI_TEST, putObjFromStream)
 	EXPECT_EQ(RET_OK, operation.putObjFromStream_Finish());
 }
 
-#if 1
 TEST(ALI_TEST, putObjFromBuffer)
 {
 	OBSS_Test operation(&clientAli);
@@ -298,7 +296,113 @@ TEST(ALI_TEST, getObj2FileThreadFAILED)
 	EXPECT_STREQ("FAILED", (char*)pth_join2);
 }
 
+/**********************************
+* Tests of Ali C style api	      *
+***********************************/
+OBSS_ClntHandle clientAli_C = NULL;
+OBSS_OptHandle operatorAli_C = NULL;
 
+TEST(ALI_C_TEST, InitCloudClnt)
+{
+	clientAli_C = OBSS_InitCloudClnt(OBSS_ALI, ALI_TEST_ACCESS_ID, ALI_TEST_ACCESS_KEY, ALI_TEST_HOST_NAME);
+	if (!clientAli_C)
+	{
+		FAIL();
+	}
+
+	OBSS_Client* obssClient = (OBSS_Client*)clientAli_C;
+	EXPECT_EQ(OBSS_ALI, obssClient->ObssType);
+	EXPECT_STREQ(ALI_TEST_ACCESS_ID, obssClient->AccessId);
+	EXPECT_STREQ(ALI_TEST_ACCESS_KEY, obssClient->AccessKey);
+	EXPECT_STREQ(ALI_TEST_HOST_NAME, obssClient->RemoteHost);
+}
+
+TEST(ALI_C_TEST, InitCloudOpt)
+{
+	operatorAli_C = OBSS_InitCloudOpt(clientAli_C, ALI_TEST_BUCKET, C_TEST_YSTNO);
+	if (!operatorAli_C)
+	{
+		FAIL();
+	}
+}
+
+TEST(ALI_C_TEST, UploadObjFromFile)
+{
+	size_t billingSize = 0;
+	EXPECT_EQ(RET_OK, OBSS_UploadObjFromFile(operatorAli_C, C_TEST_YEAR, C_TEST_MONTH, C_TEST_DAY, "ut_obss.out", "ut_obss.out", &billingSize));
+	EXPECT_EQ(RET_OK, OBSS_UploadObjFromFile(operatorAli_C, C_TEST_YEAR, C_TEST_MONTH, C_TEST_DAY, "libcldipc.a", "libcldipc.a", &billingSize));
+	EXPECT_EQ(RET_ERROR, OBSS_UploadObjFromFile(operatorAli_C, C_TEST_YEAR, C_TEST_MONTH, C_TEST_DAY, "NO_libcldipc.a", "NO_libcldipc.a", &billingSize));
+}
+
+TEST(ALI_C_TEST, UploadObjFromStream)
+{
+	char buff_A[1024] = {0};
+	memset(buff_A, 'A', 1024);
+	char buff_B[700*1024] = {0};
+	memset(buff_B, 'B', 700*1024);
+	char buff_C[1800*1024] = {0};
+	memset(buff_C, 'C', 1800*1024);
+	size_t piece_len = 188;
+	size_t send_len = 0;
+
+	EXPECT_EQ(RET_OK, OBSS_UploadObjFromStream_Init(operatorAli_C, C_TEST_YEAR, C_TEST_MONTH, C_TEST_DAY, "A_1024", sizeof(buff_A)));
+	send_len = 0;
+	while(send_len < sizeof(buff_A))
+	{
+		EXPECT_EQ(RET_OK, OBSS_UploadObjFromStream_Send(operatorAli_C, buff_A + send_len, piece_len));
+		send_len += piece_len;
+	}
+	EXPECT_EQ(RET_OK, OBSS_UploadObjFromStream_Finish(operatorAli_C));
+
+	EXPECT_EQ(RET_OK, OBSS_UploadObjFromStream_Init(operatorAli_C, C_TEST_YEAR, C_TEST_MONTH, C_TEST_DAY, "B_700K", sizeof(buff_B)));
+	send_len = 0;
+	while(send_len < sizeof(buff_B))
+	{
+		EXPECT_EQ(RET_OK, OBSS_UploadObjFromStream_Send(operatorAli_C, buff_B + send_len, piece_len));
+		send_len += piece_len;
+	}
+	EXPECT_EQ(RET_OK, OBSS_UploadObjFromStream_Finish(operatorAli_C));
+
+	EXPECT_EQ(RET_OK, OBSS_UploadObjFromStream_Init(operatorAli_C, C_TEST_YEAR, C_TEST_MONTH, C_TEST_DAY, "C_1800K", sizeof(buff_C)));
+	send_len = 0;
+	while(send_len < sizeof(buff_C))
+	{
+		EXPECT_EQ(RET_OK, OBSS_UploadObjFromStream_Send(operatorAli_C, buff_C + send_len, piece_len));
+		send_len += piece_len;
+	}
+	EXPECT_EQ(RET_OK, OBSS_UploadObjFromStream_Finish(operatorAli_C));
+}
+
+TEST(ALI_C_TEST, DeleteDirByDate)
+{
+	EXPECT_EQ(RET_OK, OBSS_DeleteDirByDate(operatorAli_C, C_TEST_YEAR, C_TEST_MONTH, C_TEST_DAY));
+}
+
+TEST(ALI_C_TEST, ResetBucket)
+{
+	EXPECT_EQ(RET_OK, OBSS_ResetBucket(operatorAli_C, "testbucket"));
+}
+
+TEST(ALI_C_TEST, FinalCloudOpt)
+{
+	OBSS_FinalCloudOpt(&operatorAli_C);
+	if (operatorAli_C)
+	{
+		FAIL();
+	}
+}
+
+TEST(ALI_C_TEST, FinalCloudClnt)
+{
+	OBSS_FinalCloudClnt(&clientAli_C);
+	if (clientAli_C)
+	{
+		FAIL();
+	}
+}
+
+
+#if 0
 /**********************************
 * Tests of Jov Cloud			  *
 ***********************************/
@@ -539,112 +643,6 @@ TEST(JOV_TEST, getObj2FileThreadFAILED)
 	pthread_join(thread_id2, &pth_join2);
 	EXPECT_STREQ("FAILED", (char*)pth_join2);
 }
-
-/**********************************
-* Tests of Ali C style api	      *
-***********************************/
-OBSS_ClntHandle clientAli_C = NULL;
-OBSS_OptHandle operatorAli_C = NULL;
-
-TEST(ALI_C_TEST, InitCloudClnt)
-{
-	clientAli_C = OBSS_InitCloudClnt(OBSS_ALI, ALI_TEST_ACCESS_ID, ALI_TEST_ACCESS_KEY, ALI_TEST_HOST_NAME);
-	if (!clientAli_C)
-	{
-		FAIL();
-	}
-
-	OBSS_Client* obssClient = (OBSS_Client*)clientAli_C;
-	EXPECT_EQ(OBSS_ALI, obssClient->ObssType);
-	EXPECT_STREQ(ALI_TEST_ACCESS_ID, obssClient->AccessId);
-	EXPECT_STREQ(ALI_TEST_ACCESS_KEY, obssClient->AccessKey);
-	EXPECT_STREQ(ALI_TEST_HOST_NAME, obssClient->RemoteHost);
-}
-
-TEST(ALI_C_TEST, InitCloudOpt)
-{
-	operatorAli_C = OBSS_InitCloudOpt(clientAli_C, ALI_TEST_BUCKET, C_TEST_YSTNO);
-	if (!operatorAli_C)
-	{
-		FAIL();
-	}
-}
-
-TEST(ALI_C_TEST, UploadObjFromFile)
-{
-	size_t billingSize = 0;
-	EXPECT_EQ(RET_OK, OBSS_UploadObjFromFile(operatorAli_C, C_TEST_YEAR, C_TEST_MONTH, C_TEST_DAY, "ut_obss.out", "ut_obss.out", &billingSize));
-	EXPECT_EQ(RET_OK, OBSS_UploadObjFromFile(operatorAli_C, C_TEST_YEAR, C_TEST_MONTH, C_TEST_DAY, "libcldipc.a", "libcldipc.a", &billingSize));
-	EXPECT_EQ(RET_ERROR, OBSS_UploadObjFromFile(operatorAli_C, C_TEST_YEAR, C_TEST_MONTH, C_TEST_DAY, "NO_libcldipc.a", "NO_libcldipc.a", &billingSize));
-}
-
-TEST(ALI_C_TEST, UploadObjFromStream)
-{
-	char buff_A[1024] = {0};
-	memset(buff_A, 'A', 1024);
-	char buff_B[700*1024] = {0};
-	memset(buff_B, 'B', 700*1024);
-	char buff_C[1800*1024] = {0};
-	memset(buff_C, 'C', 1800*1024);
-	size_t piece_len = 188;
-	size_t send_len = 0;
-
-	EXPECT_EQ(RET_OK, OBSS_UploadObjFromStream_Init(operatorAli_C, C_TEST_YEAR, C_TEST_MONTH, C_TEST_DAY, "A_1024", sizeof(buff_A)));
-	send_len = 0;
-	while(send_len < sizeof(buff_A))
-	{
-		EXPECT_EQ(RET_OK, OBSS_UploadObjFromStream_Send(operatorAli_C, buff_A + send_len, piece_len));
-		send_len += piece_len;
-	}
-	EXPECT_EQ(RET_OK, OBSS_UploadObjFromStream_Finish(operatorAli_C));
-
-	EXPECT_EQ(RET_OK, OBSS_UploadObjFromStream_Init(operatorAli_C, C_TEST_YEAR, C_TEST_MONTH, C_TEST_DAY, "B_700K", sizeof(buff_B)));
-	send_len = 0;
-	while(send_len < sizeof(buff_B))
-	{
-		EXPECT_EQ(RET_OK, OBSS_UploadObjFromStream_Send(operatorAli_C, buff_B + send_len, piece_len));
-		send_len += piece_len;
-	}
-	EXPECT_EQ(RET_OK, OBSS_UploadObjFromStream_Finish(operatorAli_C));
-
-	EXPECT_EQ(RET_OK, OBSS_UploadObjFromStream_Init(operatorAli_C, C_TEST_YEAR, C_TEST_MONTH, C_TEST_DAY, "C_1800K", sizeof(buff_C)));
-	send_len = 0;
-	while(send_len < sizeof(buff_C))
-	{
-		EXPECT_EQ(RET_OK, OBSS_UploadObjFromStream_Send(operatorAli_C, buff_C + send_len, piece_len));
-		send_len += piece_len;
-	}
-	EXPECT_EQ(RET_OK, OBSS_UploadObjFromStream_Finish(operatorAli_C));
-}
-
-TEST(ALI_C_TEST, DeleteDirByDate)
-{
-	EXPECT_EQ(RET_OK, OBSS_DeleteDirByDate(operatorAli_C, C_TEST_YEAR, C_TEST_MONTH, C_TEST_DAY));
-}
-
-TEST(ALI_C_TEST, ResetBucket)
-{
-	EXPECT_EQ(RET_OK, OBSS_ResetBucket(operatorAli_C, "testbucket"));
-}
-
-TEST(ALI_C_TEST, FinalCloudOpt)
-{
-	OBSS_FinalCloudOpt(&operatorAli_C);
-	if (operatorAli_C)
-	{
-		FAIL();
-	}
-}
-
-TEST(ALI_C_TEST, FinalCloudClnt)
-{
-	OBSS_FinalCloudClnt(&clientAli_C);
-	if (clientAli_C)
-	{
-		FAIL();
-	}
-}
-
 
 /**********************************
 * Tests of Jov C style api	      *

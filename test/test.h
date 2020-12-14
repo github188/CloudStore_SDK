@@ -14,20 +14,7 @@
 
 
 #if 1
-#define ALI_TEST_HOST_NAME		"oss-cn-beijing.aliyuncs.com"
-#define ALI_TEST_ACCESS_ID		"4fZazqCFmQTbbmcw"
-#define ALI_TEST_ACCESS_KEY 	"sBT6DgBMdCHnnaYdvK0o6O3zaN06sW"
-#define ALI_TEST_BUCKET 		"jov-test"
 
-#define JOV_TEST_HOST_NAME		"pan.cloudsee.net"
-#define JOV_TEST_ACCESS_ID		"KD3CWKRN96SUYMW9U1HI"
-#define JOV_TEST_ACCESS_KEY 	"YaIVDaJPLjTF8Ow88z1SQK3i6GT1wK0LN1Cx6IBH"
-#define JOV_TEST_BUCKET 		"jov_test"
-#else
-#define ALI_TEST_HOST_NAME		"oss-cn-hangzhou.aliyuncs.com"
-#define ALI_TEST_ACCESS_ID		"4fZazqCFmQTbbmcw"
-#define ALI_TEST_ACCESS_KEY 	"sBT6DgBMdCHnnaYdvK0o6O3zaN06sW"
-#define ALI_TEST_BUCKET 		"jovetech"
 
 #define JOV_TEST_HOST_NAME		"pan.cloudsee.net"
 #define JOV_TEST_ACCESS_ID		"G3ZIKD1O99AYJ3YLNFKP"
